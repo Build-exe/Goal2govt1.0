@@ -2197,11 +2197,8 @@ function authHeaders(){
 
 async function apiRequest(path, options = {}){
   let res, data = null;
-  // API_BASE_URL comes from config.js — "" for same-origin (local dev),
-  // or the backend's full URL when the frontend is hosted separately.
-  const url = (typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '') + path;
   try{
-    res = await fetch(url, {
+    res = await fetch(path, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) }
     });
