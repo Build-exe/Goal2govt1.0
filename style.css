@@ -106,17 +106,9 @@
   .dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
   .dashboard-card{
     background:var(--card-bg);border:1px solid var(--border);border-radius:14px;
-    overflow:hidden;display:flex;flex-direction:column;cursor:pointer;position:relative;
+    overflow:hidden;display:flex;flex-direction:column;cursor:pointer;
     transition:box-shadow .2s, transform .2s;
   }
-  .dc-lock-badge{
-    position:absolute;top:14px;right:14px;z-index:2;
-    display:flex;align-items:center;gap:5px;
-    background:rgba(255,255,255,.94);color:var(--blue-dark);
-    font-size:11px;font-weight:700;padding:5px 10px;border-radius:20px;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
-  }
-  .dc-lock-badge svg{width:12px;height:12px;flex:none;}
   .dashboard-card:hover{box-shadow:0 10px 26px rgba(13,59,122,0.14);transform:translateY(-2px);}
   .dc-head{
     background:linear-gradient(120deg,var(--blue-mid),var(--blue-light));
@@ -430,24 +422,6 @@
   }
   .auth-submit:hover{background:var(--blue);}
   .auth-disclaimer{font-size:11px; color:#9aa6b8; margin-top:16px; line-height:1.5; font-style:italic;}
-  .auth-success{color:#1e8e3e; font-size:12.5px; margin-top:10px; min-height:16px;}
-  .auth-forgot-intro{font-size:13px; color:var(--text-mid); margin-bottom:4px; line-height:1.5;}
-  .auth-link-btn{
-    background:none; border:none; color:var(--blue); font-size:13px; font-weight:600;
-    cursor:pointer; margin-top:12px; padding:0; text-align:center; width:100%;
-  }
-  .auth-link-btn:hover{text-decoration:underline;}
-
-  /* Standalone reset-password page */
-  .reset-pw-section{display:flex; justify-content:center; padding:60px 20px 80px;}
-  .reset-pw-card{
-    max-width:420px; width:100%; background:var(--card-bg); border:1px solid var(--border);
-    border-radius:16px; padding:36px 32px; box-shadow:0 10px 30px rgba(13,59,122,0.08);
-  }
-  .reset-pw-card h1{font-size:22px; font-weight:800; color:var(--text-dark); margin-bottom:8px; text-align:center;}
-  .reset-pw-sub{font-size:14px; color:var(--text-mid); text-align:center; margin-bottom:22px;}
-  #resetSuccessBox, #resetInvalidBox{text-align:center;}
-  #resetSuccessBox .get-started, #resetInvalidBox .get-started{margin-top:14px;}
 
   /* ===== Timed exam-taking overlay ===== */
   .exam-sheet{background:#1B1E24 !important;}
@@ -714,26 +688,6 @@
   }
   .ap-special-card .ap-special-name{font-size:12.5px;font-weight:700;color:var(--text-dark);text-align:center;}
   .ap-special-logo{max-width:150px;width:100%;height:auto;margin:0 auto 10px;border-radius:8px;object-fit:contain;}
-
-  /* Contact Us */
-  .ap-contact{padding:10px 40px 56px;text-align:center;}
-  .ap-contact h2{font-size:32px;font-weight:800;color:var(--text-dark);}
-  .ap-contact h2 .ap-tag{color:var(--blue);}
-  .ap-contact .ap-sub{font-size:16px;color:var(--text-mid);margin:8px 0 30px;}
-  .ap-contact-card{
-    max-width:420px;margin:0 auto;background:var(--white);border:1px solid var(--border);
-    border-radius:16px;padding:36px 28px;box-shadow:0 10px 30px rgba(13,59,122,0.08);
-  }
-  .ap-contact-icon{
-    width:64px;height:64px;margin:0 auto 18px;border-radius:16px;
-    background:linear-gradient(135deg,var(--blue-mid),var(--blue));
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 8px 18px rgba(21,101,192,0.3);
-  }
-  .ap-contact-icon svg{width:28px;height:28px;}
-  .ap-contact-card h3{font-size:19px;font-weight:800;color:var(--text-dark);margin-bottom:8px;}
-  .ap-contact-email{font-size:16px;color:var(--blue);font-weight:500;word-break:break-word;}
-  .ap-contact-email:hover{text-decoration:underline;}
 
   /* Footer decorative skyline + tricolor wave */
   .ap-footer-art{

@@ -247,7 +247,7 @@
 </section>
 
 <!-- Founder & Idea -->
-<!-- <section class="ap-founder">
+<section class="ap-founder">
   <h2>Founder <span>&amp; Idea</span></h2>
   <div class="ap-founder-grid">
     <div class="ap-founder-card blue">
@@ -272,7 +272,7 @@
 </section>
 
 <!-- Our Team -->
-<!-- <section class="ap-team">
+<section class="ap-team">
   <h2>Our <span>Team</span></h2>
   <p class="ap-sub">We sincerely thank our friends and team members for their constant support, encouragement, and contribution.</p>
   <div class="ap-team-grid">
@@ -296,7 +296,7 @@
 </section>
 
 <!-- Mentor thanks -->
-<!-- <section class="ap-mentor">
+<section class="ap-mentor">
   <div class="ap-mentor-box">
     <div class="ap-mentor-icon">🎓</div>
     <p>Thanks to <b>John Harrison sir</b> for his valuable guidance, constant
@@ -323,11 +323,7 @@
   <div class="ap-special-row">
     <div class="ap-special-card">
       <img src="Lakshya_Technologies_logo.png" alt="Lakshya Technologies" class="ap-special-logo">
-      <div class="ap-special-name">
-        <a href="https://lakshya-tech.com/" target="_blank" rel="noopener noreferrer">
-          Lakshya Technologies
-        </a>
-      </div>
+      <div class="ap-special-name">Lakshya Technologies</div>
     </div>
     <div class="ap-special-card">
       <img src="Nethaji_Degree_college_logo.png" alt="Nethaji Degree College" class="ap-special-logo">
@@ -335,20 +331,7 @@
     </div>
   </div>
 </section>
-  
-<!-- Contact Us -->
-<section class="ap-contact">
-  <h2>Contact <span class="ap-tag">Us</span></h2>
-  <p class="ap-sub">Get in touch with Goal2Govt</p>
-  <div class="ap-contact-card">
-    <div class="ap-contact-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-    </div>
-    <h3>Email Us</h3>
-    <a href="mailto:goal2govt.1@gmail.com" class="ap-contact-email">goal2govt.1@gmail.com</a>
-  </div>
-</section>
-  
+
 <div class="ap-footer-art">
   <svg viewBox="0 0 1200 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
     <rect x="0.0" y="130" width="46.0" height="70" fill="#b9cbe4"/>
@@ -400,7 +383,7 @@
   </div>
 </div>
 
-<!-- Auth modal: Sign Up / Log In / Forgot Password (backed by the real /api auth routes) -->
+<!-- Auth modal: Sign Up / Log In (client-side demo auth, stored in this browser only) -->
 <div class="overlay" id="authOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <div class="sheet auth-sheet">
     <button class="close-btn" id="authCloseBtn" aria-label="Close">✕</button>
@@ -418,7 +401,6 @@
         <input type="password" id="loginPassword" required autocomplete="current-password">
         <p class="auth-error" id="loginError"></p>
         <button type="submit" class="auth-submit">Log In</button>
-        <button type="button" class="auth-link-btn" id="forgotPasswordLink">Forgot password?</button>
       </form>
 
       <form id="signupForm" class="auth-form" style="display:none;">
@@ -434,16 +416,7 @@
         <button type="submit" class="auth-submit">Create Free Account</button>
       </form>
 
-      <form id="forgotForm" class="auth-form" style="display:none;">
-        <p class="auth-forgot-intro">Enter the email on your account and we'll send you a link to reset your password.</p>
-        <label>Email</label>
-        <input type="email" id="forgotEmail" required autocomplete="email">
-        <p class="auth-error" id="forgotError"></p>
-        <p class="auth-success" id="forgotSuccess"></p>
-        <button type="submit" class="auth-submit">Send Reset Link</button>
-        <button type="button" class="auth-link-btn" id="backToLoginLink">Back to Log In</button>
-      </form>
-
+      <p class="auth-disclaimer">Demo account system — your details are stored only in this browser, not on a server. Don't reuse a real password.</p>
     </div>
   </div>
 </div>
@@ -464,7 +437,6 @@
 </div>
 
 <script src="questions-data.js"></script>
-<script src="papers-data.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
