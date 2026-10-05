@@ -75,12 +75,33 @@ const stagesByType = {
 /* quizPools now comes from questions-data.js (loaded before this file) —
    a separate, much larger question bank (300+ per tier), kept out of
    script.js on purpose so the logic and the data don't live in one file. */
+function tierKey(tier){
+  if (tier==="10th") return "p10";
+  if (tier==="12th") return "p12";
+  if (tier==="iti" || tier==="diploma") return "technical";
+  if (tier==="degree") return "grad";
+  return "engineering"; // btech
+}
+
+/* Question pools now come from the server (/api/pool, stored in the Supabase
+   database). Each pool is downloaded once per page load and cached here.
+   If the server can't be reached, it falls back to the local questions-data.js
+   file when that file is still loaded. */
+const poolCache = {};
 function tierPool(tier){
-  if (tier==="10th") return quizPools.p10;
-  if (tier==="12th") return quizPools.p12;
-  if (tier==="iti" || tier==="diploma") return quizPools.technical;
-  if (tier==="degree") return quizPools.grad;
-  return quizPools.engineering; // btech
+  const key = tierKey(tier);
+  if (poolCache[key]) return poolCache[key];
+  if (typeof quizPools !== "undefined" && quizPools[key]) return quizPools[key];
+  return [];
+}
+async function ensurePool(tier){
+  const key = tierKey(tier);
+  if (poolCache[key]) return poolCache[key];
+  const res = await apiRequest('/api/pool?tier=' + encodeURIComponent(key));
+  if (res.ok && Array.isArray(res.data) && res.data.length){
+    poolCache[key] = res.data;
+  }
+  return tierPool(tier);
 }
 
 /* ---------- Timed mock-exam patterns, by roadmap type ----------
@@ -1792,7 +1813,14 @@ function renderQuiz(panel, tier, label){
       scoreBox.classList.add('show');
     });
   }
-  build();
+  panel.innerHTML = '<p>Loading questions…</p>';
+  ensurePool(tier).then(function(pool){
+    if (!pool.length){
+      panel.innerHTML = '<p>Could not load questions. Please check your connection and refresh the page.</p>';
+      return;
+    }
+    build();
+  });
 }
 
 /* ============================================================
@@ -1945,11 +1973,32 @@ function openCategoryOverview(kind){
 }
 
 /* ============================================================
-   YOUR OWN UPLOADED PAPERS & E-BOOKS
-   Moved out to papers-data.js — edit that file to add or
-   remove a question paper or e-book. It defines the same
-   userPapers / userEbooks arrays used below.
+   YOUR OWN UPLOADED PAPERS — Google Drive / OneDrive links
+   Add one entry per paper here: { title, url }.
+   Just send me the links and titles and I'll fill this in for
+   you — or edit this array yourself, it's plain JavaScript.
    ============================================================ */
+const userPapers = [
+ { title: "SSC-CGL-T-I-Similar-Paper-12-Sep-2025-S1-English.pdf", url: "https://drive.google.com/file/d/1z6cl35kcrfTMso-FK4zSuYxVmHI3IFwZ/view?usp=drive_link" },
+   { title: "SSC-CGL-QUESTION-PAPER-13-Aug-2021-Shift-1-English", url: "https://drive.google.com/file/d/1hV2ljDa0cQ3a2d3PXcrbAoELy3eVR3Hb/view?usp=sharing" },
+   { title: "SSC-CGL-Tier-1-Question-Paper-English_09_09_2024", url: "https://drive.google.com/file/d/1oQ0pve3M2Q7E3QplLPaQrVwQYVJXhlTM/view?usp=drive_link" },
+   { title: "SSC-CGL-Tier-1-Question-Paper_14_07_2023", url: "https://drive.google.com/file/d/1RTFsKH_e484xoSb4bzxLnIKmG3gML9ko/view?usp=drive_link" },
+   { title: "RRB-NTPC-CBT-I-Question-Paper_16-03-2026_S1-2", url: "https://drive.google.com/file/d/10CS_4iE9muDNDEI6308GKJWhaMdXtjsB/view?usp=drive_link" },
+   { title: "RRB-NTPC-2025-CBT-I-Question-Paper_16-03-2026_S1-2", url: "https://drive.google.com/file/d/1sepu-w6TBAh5Wa2FrWi-PbnibQDkqhfm/view?usp=drive_link" },
+   { title: "RRB-NTPC-2019-CBT-1-Question-Paper-1", url: "https://drive.google.com/file/d/1rz-8ZhN2V8kJtg2Dw2XElOxG96whdmCZ/view?usp=drive_link" },
+   { title: "RRB-NTPC-2019-CBT-1-Question-Paper-1", url: "https://drive.google.com/file/d/195FMkB-SgoNwae9NEnBjv9LSjH4YEVqa/view?usp=drive_link" },
+   { title: "RRB-NTPC-2019-01_04_2021_-10_30-am-to-12_00-Paper-1", url: "https://drive.google.com/file/d/1CrU4c_Tfm43DBGEeX7qlr-m08uEphWI7/view?usp=drive_link" },
+];
+
+/* ============================================================
+   YOUR OWN E-BOOKS & GUIDES — Google Drive / OneDrive links
+   Add one entry per e-book here: { title, url }.
+   Same idea as userPapers above — send me links and titles,
+   or edit this array yourself.
+   ============================================================ */
+const userEbooks = [
+  // { title: "General Studies Complete Guide", url: "https://drive.google.com/file/d/XXXXXXXX/view?usp=sharing" },
+];
 
 /* ---------- Shared search-filtered list renderer ---------- */
 function renderSearchableList(panel, items, opts){
@@ -2163,17 +2212,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
 
   // Previous Year Papers card
   const papersCard = document.getElementById('card-previous-papers');
-  if (papersCard) papersCard.addEventListener('click', ()=>{
-    if (!getCurrentUser()){ openAuthModal('login'); return; }
-    openPreviousPapers();
-  });
+  if (papersCard) papersCard.addEventListener('click', openPreviousPapers);
 
   // E-Books & Guides card
   const ebooksCard = document.getElementById('card-ebooks');
-  if (ebooksCard) ebooksCard.addEventListener('click', ()=>{
-    if (!getCurrentUser()){ openAuthModal('login'); return; }
-    openEbooks();
-  });
+  if (ebooksCard) ebooksCard.addEventListener('click', openEbooks);
 });
 
 try{
@@ -2197,11 +2240,8 @@ function authHeaders(){
 
 async function apiRequest(path, options = {}){
   let res, data = null;
-  // API_BASE_URL comes from config.js — "" for same-origin (local dev),
-  // or the backend's full URL when the frontend is hosted separately.
-  const url = (typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '') + path;
   try{
-    res = await fetch(url, {
+    res = await fetch(path, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(options.headers || {}) }
     });
@@ -2265,9 +2305,6 @@ function refreshAuthUI(){
   const mockLocked = document.getElementById('mockLocked');
   const mockUnlocked = document.getElementById('mockUnlocked');
   const mockWelcome = document.getElementById('mockWelcome');
-  const lockBadges = document.querySelectorAll('.dc-lock-badge');
-
-  lockBadges.forEach(b => b.style.display = user ? 'none' : 'flex');
 
   if (user){
     authBtn.textContent = 'Hi, ' + user.name.split(' ')[0] + ' ▾';
@@ -2288,39 +2325,14 @@ function refreshAuthUI(){
 const authOverlay = document.getElementById('authOverlay');
 document.body.appendChild(authOverlay);
 
-// Switches the modal between the three views: 'login', 'signup', 'forgot'.
-// The tab strip (Log In / Sign Up) only makes sense for the first two, so
-// it's hidden while the forgot-password form is showing.
-function showAuthView(view){
+function openAuthModal(defaultTab){
   document.getElementById('loginError').textContent = '';
   document.getElementById('signupError').textContent = '';
-  document.getElementById('forgotError').textContent = '';
-  document.getElementById('forgotSuccess').textContent = '';
-
-  const tabs = document.querySelector('.auth-tabs');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const forgotForm = document.getElementById('forgotForm');
-
-  if (view === 'forgot'){
-    tabs.style.display = 'none';
-    loginForm.style.display = 'none';
-    signupForm.style.display = 'none';
-    forgotForm.style.display = 'flex';
-    document.getElementById('forgotEmail').value = document.getElementById('loginEmail').value || '';
-    return;
-  }
-
-  tabs.style.display = 'flex';
-  forgotForm.style.display = 'none';
   document.querySelectorAll('.auth-tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`.auth-tab-btn[data-authtab="${view}"]`).classList.add('active');
-  loginForm.style.display = view === 'login' ? 'flex' : 'none';
-  signupForm.style.display = view === 'signup' ? 'flex' : 'none';
-}
-
-function openAuthModal(defaultTab){
-  showAuthView(defaultTab || 'login');
+  const tab = defaultTab || 'login';
+  document.querySelector(`.auth-tab-btn[data-authtab="${tab}"]`).classList.add('active');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'flex' : 'none';
+  document.getElementById('signupForm').style.display = tab === 'signup' ? 'flex' : 'none';
   authOverlay.classList.add('open');
   lockBackgroundScroll();
 }
@@ -2332,10 +2344,14 @@ document.getElementById('authCloseBtn').addEventListener('click', closeAuthModal
 authOverlay.addEventListener('click', (e)=>{ if (e.target === authOverlay) closeAuthModal(); });
 
 document.querySelectorAll('.auth-tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=> showAuthView(btn.dataset.authtab));
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.auth-tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.authtab;
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'flex' : 'none';
+    document.getElementById('signupForm').style.display = tab === 'signup' ? 'flex' : 'none';
+  });
 });
-document.getElementById('forgotPasswordLink').addEventListener('click', ()=> showAuthView('forgot'));
-document.getElementById('backToLoginLink').addEventListener('click', ()=> showAuthView('login'));
 
 document.getElementById('loginForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
@@ -2363,21 +2379,6 @@ document.getElementById('signupForm').addEventListener('submit', async (e)=>{
   if (!res.ok){ errEl.textContent = res.error; return; }
   closeAuthModal();
   refreshAuthUI();
-});
-
-document.getElementById('forgotForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('forgotEmail').value;
-  const errEl = document.getElementById('forgotError');
-  const okEl = document.getElementById('forgotSuccess');
-  errEl.textContent = '';
-  okEl.textContent = '';
-  const res = await apiRequest('/api/forgot-password', {
-    method:'POST',
-    body: JSON.stringify({ email })
-  });
-  if (!res.ok){ errEl.textContent = res.error; return; }
-  okEl.textContent = "If that email is registered, a reset link is on its way — check your inbox (and spam folder).";
 });
 
 document.getElementById('authBtn').addEventListener('click', ()=>{
@@ -2432,11 +2433,15 @@ if (mockTierSelect){
     const job = jobs.find(j=>j.id===mockJobSelect.value);
     if (!job) return;
     const pattern = getExamPattern(job);
-    const poolSize = tierPool(job.tier).length;
-    const repeatNote = pattern.questionCount > poolSize
-      ? ` Our original question bank has ${poolSize} per category, so on longer papers some questions repeat within a single attempt — each Mock Test set is shuffled differently.`
-      : '';
-    mockPatternBox.innerHTML = `<b>${pattern.label}</b> &middot; ${pattern.questionCount} questions &middot; ${pattern.durationMinutes} minutes &middot; recruiting body: ${job.body}<br>${repeatNote}`;
+    const render = function(){
+      const poolSize = tierPool(job.tier).length;
+      const repeatNote = poolSize && pattern.questionCount > poolSize
+        ? ` Our original question bank has ${poolSize} per category, so on longer papers some questions repeat within a single attempt — each Mock Test set is shuffled differently.`
+        : '';
+      mockPatternBox.innerHTML = `<b>${pattern.label}</b> &middot; ${pattern.questionCount} questions &middot; ${pattern.durationMinutes} minutes &middot; recruiting body: ${job.body}<br>${repeatNote}`;
+    };
+    render();                                  // show the pattern straight away
+    ensurePool(job.tier).then(function(){ if (jobs.find(j=>j.id===mockJobSelect.value) === job) render(); });
   }
   mockTierSelect.addEventListener('change', populateMockJobs);
   mockJobSelect.addEventListener('change', updateMockPatternBox);
@@ -2483,7 +2488,12 @@ function buildExamQuestions(tier, count, seedStr){
   });
 }
 
-function startTimedExam(job, setNum){
+async function startTimedExam(job, setNum){
+  const loaded = await ensurePool(job.tier);
+  if (!loaded.length){
+    alert('Could not load the questions. Please check your connection and try again.');
+    return;
+  }
   const pattern = getExamPattern(job);
   const seedStr = job.id + '-set' + setNum;
   const questions = buildExamQuestions(job.tier, pattern.questionCount, seedStr);
@@ -2579,6 +2589,16 @@ function submitExam(timeUp){
   const { questions, answers, pattern } = examState;
   let score = 0;
   questions.forEach((q,i)=>{ if (answers[i] === q.correct) score++; });
+  // Save this attempt to the database (best-effort; the result screen never waits on it)
+  apiRequest('/api/attempts', {
+    method: 'POST',
+    body: JSON.stringify({
+      exam: examState.job.name,
+      set_number: examState.setNum,
+      score: score,
+      answers: questions.map((q,i)=>({ q: q.text, chosen: answers[i], correct: q.correct }))
+    })
+  });
   const timeUsed = pattern.durationMinutes*60 - Math.max(0, examState.secondsLeft);
   const mm = String(Math.floor(timeUsed/60)).padStart(2,'0');
   const ss = String(timeUsed%60).padStart(2,'0');
@@ -2652,65 +2672,6 @@ examOverlay.addEventListener('click', (e)=>{
     closeExamOverlay();
   }
 });
-
-/* ============================================================
-   RESET-PASSWORD PAGE (reset-password.html only)
-   Reads ?token=... from the URL and lets the person set a new
-   password. The other pages don't have #resetPasswordForm, so
-   this block simply does nothing on them.
-   ============================================================ */
-(function initResetPasswordPage(){
-  const form = document.getElementById('resetPasswordForm');
-  if (!form) return;
-
-  const intro = document.getElementById('resetIntro');
-  const successBox = document.getElementById('resetSuccessBox');
-  const invalidBox = document.getElementById('resetInvalidBox');
-  const errEl = document.getElementById('resetError');
-
-  const token = new URLSearchParams(window.location.search).get('token');
-  if (!token){
-    intro.style.display = 'none';
-    invalidBox.style.display = 'block';
-    return;
-  }
-  form.style.display = 'flex';
-
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const password = document.getElementById('resetNewPassword').value;
-    const confirm = document.getElementById('resetConfirmPassword').value;
-    errEl.textContent = '';
-    if (password.length < 6){ errEl.textContent = 'Password must be at least 6 characters.'; return; }
-    if (password !== confirm){ errEl.textContent = 'Passwords do not match.'; return; }
-
-    const res = await apiRequest('/api/reset-password', {
-      method:'POST',
-      body: JSON.stringify({ token, password })
-    });
-
-    if (!res.ok){
-      intro.style.display = 'none';
-      form.style.display = 'none';
-      document.getElementById('resetInvalidMsg').textContent = res.error;
-      invalidBox.style.display = 'block';
-      return;
-    }
-
-    intro.style.display = 'none';
-    form.style.display = 'none';
-    successBox.style.display = 'block';
-  });
-
-  document.getElementById('resetGoToLogin').addEventListener('click', ()=>{
-    window.location.href = 'index.html?openLogin=1';
-  });
-})();
-
-// If redirected here after a successful reset, pop the Log In modal open.
-if (new URLSearchParams(window.location.search).get('openLogin') === '1'){
-  document.addEventListener('DOMContentLoaded', ()=> openAuthModal('login'));
-}
 
 refreshAuthUI();
 restoreSession(); // re-check the session token with the server on page load
